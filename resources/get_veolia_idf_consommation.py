@@ -122,6 +122,8 @@ try:
 
 	prefs = {"download.default_directory" : downloadPath}
 	options.add_experimental_option("prefs",prefs)
+	options.add_argument("--no-sandbox")
+	options.add_argument("--disable-dev-shm-usage")
 
 	#Démarrage du browser Chrome 
 	logger.info('Initialisation browser')
