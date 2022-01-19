@@ -40,6 +40,13 @@ sudo apt-get install -y xvfb iceweasel
 
 echo 40 > "${PROGRESS_FILE}"
 echo "********************************************************"
+echo "              Install chromedriver                      "
+echo "********************************************************"
+sudo apt-get install -y chromium-chromedriver
+
+
+echo 45 > "${PROGRESS_FILE}"
+echo "********************************************************"
 echo "              Install geckodriver                       "
 echo "********************************************************"
 
@@ -110,7 +117,7 @@ if [ $driver_version != "" ]; then
 	fi	
 fi
 
-echo 50 > "${PROGRESS_FILE}"
+echo 55 > "${PROGRESS_FILE}"
 echo "********************************************************"
 echo "            Install Python3 and dependencies            "
 echo "********************************************************"

@@ -26,7 +26,7 @@ urlConsoMultiContrat = url + '/s/contrats'
 
 browser = None
 display = None
-geckodriverLog = None
+chromedriverLog = None
 logger = None
 logLevel = None
 
@@ -64,7 +64,7 @@ def initLogger(logFile, logLevel):
 		
 def waitData(exitCond, sleepTime, loopNb):
 
-	kpi_field = browser.find_elements_by_class_name("kpi-value")
+	kpi_field = browser.find_elements_by_xpath('//*[@class="kpi-value"]')
 
 	nb_kpi = len(kpi_field)
 	if nb_kpi != 3 : raise Exception('wrong KPI number')
@@ -94,7 +94,7 @@ try:
 	#else : logFile = tempDir + '/teleo_python.log'	
 	logFile = tempDir + '/teleo_python.log'
 	
-	geckodriverLog = tempDir + '/geckodriver.log'
+	chromedriverLog = tempDir + '/chromedriver.log'
 	
 	Path(tempDir).mkdir(mode=0o777,parents=True, exist_ok=True)
 
@@ -117,32 +117,32 @@ try:
 	display = Display(visible=0, size=(800, 600))
 	display.start()
 
-	options = webdriver.FirefoxOptions()
-	options.add_argument('-headless')
+	options = webdriver.ChromeOptions()
+	options.add_argument("--headless")
 	options.add_argument("--no-sandbox")
-	options.headless = True
 
-	profile = webdriver.FirefoxProfile()
-	profile.set_preference('browser.download.folderList', 2)
-	profile.set_preference('browser.download.manager.showWhenStarting', False)
-	profile.set_preference('browser.download.dir', downloadPath)
-	profile.set_preference('browser.helperApps.neverAsk.saveToDisk', 'text/csv')
+	options.add_argument("--browser.download.folderList=2")
+	options.add_argument("--browser.download.manager.showWhenStarting=False")
+	options.add_argument("--browser.download.dir=downloadPath")
+	options.add_argument("--browser.helperApps.neverAsk.saveToDisk=text/csv")
 
-	# Bien indiquer l'emplacement de geckodriver
+	#Démarrage du browser Chrome 
 	logger.info('Initialisation browser')
-	browser = webdriver.Firefox(firefox_profile=profile, options=options, executable_path=r'/usr/local/bin/geckodriver', service_log_path=geckodriverLog)
+	browser = webdriver.Chrome(options=options, service_args=["--verbose", "--log-path=" + chromedriverLog])
 
 	# Page de login
 	logger.info('Page de login')
 	browser.get(urlHome)
-	WebDriverWait(browser, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR , 'input[inputmode="email"]')))
-
-	nb_form = len(browser.find_elements_by_css_selector('input[inputmode="email"]'))
+	time.sleep(3)
+	wait = WebDriverWait(browser, 20)
+	wait.until(EC.presence_of_element_located((By.XPATH, "//input[@id='input-3']")))
+	nb_form = len(browser.find_elements_by_xpath("//input[@inputmode='email']"))
+	time.sleep(3)
 	if nb_form != 2 : raise Exception('wrong login number')
 
 	# Recherche et remplis les champs d'identification
-	idEmail = browser.find_element_by_id('input-3')
-	idPassword = browser.find_element_by_css_selector('input[type="password"]')
+	idEmail = browser.find_element_by_xpath("//input[@id='input-3']")
+	idPassword = browser.find_element_by_xpath("//input[@type='password']")
 
 	idEmail.clear()
 	idEmail.send_keys(veolia_login)
@@ -191,9 +191,9 @@ try:
 		logger.info('Page de consommation')
 		
 		browser.get(urlConso)
-	
-	WebDriverWait(browser, 60).until(EC.presence_of_element_located((By.NAME , 'from')))
-	
+
+	WebDriverWait(browser, 60).until(EC.presence_of_element_located((By.XPATH , "//input[@name='from']")))
+
 	# On attend que les premières données soient chargées
 	waitData("mois",5,4)
 	
@@ -212,10 +212,11 @@ try:
 	
 	# Téléchargement du fichier
 	logger.info('Téléchargement du fichier')
-	downloadFileButton = browser.find_element_by_class_name("slds-button.slds-text-title_caps")
+	downloadFileButton = browser.find_element_by_xpath("//*[contains(@class, 'slds-text-title_caps') and contains(@class, 'slds-button')]")
 	downloadFileButton.click()
 
 	logger.info('Fichier: ' + downloadFile)
+	time.sleep(30)
 
 	# Resultat
 	returnStatus = 1
@@ -234,8 +235,8 @@ finally:
 	if (browser is not None) : browser.quit()
 		
 	# Suppression fichier temporaire sauf en debug
-	if (geckodriverLog is not None and os.path.exists(geckodriverLog)) : 
-		if (logLevel != logging.DEBUG) : os.remove(geckodriverLog)
+	if (chromedriverLog is not None and os.path.exists(chromedriverLog)) : 
+		if (logLevel != logging.DEBUG) : os.remove(chromedriverLog)
 			
 	# fermeture de l'affichage virtuel
 	logger.info('Fermeture display. Exit code ' + str(returnStatus))
