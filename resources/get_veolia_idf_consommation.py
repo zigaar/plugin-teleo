@@ -64,7 +64,7 @@ def initLogger(logFile, logLevel):
 		
 def waitData(exitCond, sleepTime, loopNb):
 
-	kpi_field = browser.find_elements_by_xpath('//*[@class="kpi-value"]')
+	kpi_field = browser.find_elements(By.XPATH, '//*[@class="kpi-value"]')
 
 	nb_kpi = len(kpi_field)
 	if nb_kpi != 3 : raise Exception('wrong KPI number')
@@ -118,13 +118,10 @@ try:
 	display.start()
 
 	options = webdriver.ChromeOptions()
-	options.add_argument("--headless")
-	options.add_argument("--no-sandbox")
+	options.headless = True
 
-	options.add_argument("--browser.download.folderList=2")
-	options.add_argument("--browser.download.manager.showWhenStarting=False")
-	options.add_argument("--browser.download.dir=downloadPath")
-	options.add_argument("--browser.helperApps.neverAsk.saveToDisk=text/csv")
+	prefs = {"download.default_directory" : downloadPath}
+	options.add_experimental_option("prefs",prefs)
 
 	#Démarrage du browser Chrome 
 	logger.info('Initialisation browser')
@@ -136,13 +133,13 @@ try:
 	time.sleep(3)
 	wait = WebDriverWait(browser, 20)
 	wait.until(EC.presence_of_element_located((By.XPATH, "//input[@id='input-3']")))
-	nb_form = len(browser.find_elements_by_xpath("//input[@inputmode='email']"))
+	nb_form = len(browser.find_elements(By.XPATH, "//input[@inputmode='email']"))
 	time.sleep(3)
 	if nb_form != 2 : raise Exception('wrong login number')
 
 	# Recherche et remplis les champs d'identification
-	idEmail = browser.find_element_by_xpath("//input[@id='input-3']")
-	idPassword = browser.find_element_by_xpath("//input[@type='password']")
+	idEmail = browser.find_element(By.XPATH, "//input[@id='input-3']")
+	idPassword = browser.find_element(By.XPATH, "//input[@type='password']")
 
 	idEmail.clear()
 	idEmail.send_keys(veolia_login)
@@ -154,7 +151,7 @@ try:
 
 	take_screenshot("1_login_form",tempDir)
 	
-	loginButton = browser.find_element_by_class_name('submit-button')
+	loginButton = browser.find_element(By.CLASS_NAME, 'submit-button')
 	loginButton.click()
 	time.sleep(5)
 
@@ -167,21 +164,21 @@ try:
 		# Page des contrats
 		logger.info('Page de(s) contrat(s)')
 		browser.get(urlConsoMultiContrat)
-		WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.XPATH , "//a[contains(.," + contractID +")]")))
+		WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.XPATH, "//a[contains(.," + contractID +")]")))
 
 		take_screenshot("2_contrats",tempDir)
 		
 		# Page de consommation
 		logger.info('Page de consommation')
 
-		contract=browser.find_element_by_xpath("//a[contains(.," + contractID +")]")
+		contract=browser.find_element(By.XPATH, "//a[contains(.," + contractID +")]")
 		contract.click()
 
-		WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.XPATH , "//span[contains(.,'Historique')]//parent::div//parent::a")))
+		WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.XPATH, "//span[contains(.,'Historique')]//parent::div//parent::a")))
 		
 		take_screenshot("2_contrat_selected",tempDir)
 		
-		histoTab = browser.find_element_by_xpath("//span[contains(.,'Historique')]//parent::div//parent::a")
+		histoTab = browser.find_element(By.XPATH, "//span[contains(.,'Historique')]//parent::div//parent::a")
 		histoTab.click()
 	
 		take_screenshot("3a_conso",tempDir)
@@ -200,11 +197,11 @@ try:
 	# Sélection boutons
 	logger.info('Sélection des données en Jours et Litres')
 	
-	dayButton = browser.find_element_by_xpath("//span[contains(.,'Jours')]//parent::button")
+	dayButton = browser.find_element(By.XPATH, "//span[contains(.,'Jours')]//parent::button")
 	dayButton.send_keys(Keys.RETURN)
 	waitData("jour",3,5)
 	
-	literButton = browser.find_element_by_xpath("//span[contains(.,'Litres')]//parent::button")
+	literButton = browser.find_element(By.XPATH, "//span[contains(.,'Litres')]//parent::button")
 	literButton.send_keys(Keys.RETURN)
 	waitData("Litres",2,5)
 	
@@ -212,7 +209,7 @@ try:
 	
 	# Téléchargement du fichier
 	logger.info('Téléchargement du fichier')
-	downloadFileButton = browser.find_element_by_xpath("//*[contains(@class, 'slds-text-title_caps') and contains(@class, 'slds-button')]")
+	downloadFileButton = browser.find_element(By.XPATH, "//*[contains(@class, 'slds-text-title_caps') and contains(@class, 'slds-button')]")
 	downloadFileButton.click()
 
 	logger.info('Fichier: ' + downloadFile)
